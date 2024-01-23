@@ -1,0 +1,6 @@
+.github
+bin/
+*.x
+*.o
+*.so
+*.dll
