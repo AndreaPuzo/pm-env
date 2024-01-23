@@ -1,2 +1,2 @@
 # pm-env
-Pocket Machine - ENVironment
+Pocket Machine - Environment
