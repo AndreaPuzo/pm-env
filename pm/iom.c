@@ -80,14 +80,6 @@ __PM_PUBL int pm_iom_ctor (struct pm_iom_t * iom, struct pm_cfg_t cfg)
 __PM_PUBL void pm_iom_dtor (struct pm_iom_t * iom)
 {
   for (int id = 0 ; id < 0x20 ; ++id) {
-  if (NULL == ram->bus) {
-    fprintf(stderr, "error: ram: unmounted device\n") ;
-    return -3 ;
-  }
-  if (NULL == ram->bus) {
-    fprintf(stderr, "error: ram: unmounted device\n") ;
-    return -3 ;
-  }
     struct pm_dev_t * dev = iom->dev[id] ;
 
     if (NULL == dev)
