@@ -101,9 +101,16 @@ __PM_PUBL void pm_cpu_dtor (struct pm_cpu_t * cpu)
 
 __PM_PUBL void pm_cpu_rst (struct pm_cpu_t * cpu, int lvl)
 {
-  if (lvl < 0) {
+  const int RST_HRD = lvl < 0 ;
+  const int RST_ALL = ( lvl >> 10 ) & 0x1 ;
+  const int RST_ID  = ( lvl >>  6 ) & 0xF ;
+
+  if (0 == RST_ALL && RST_ID != pm_cpu_id(cpu))
+    return ;
+
+  if (0 != RST_HRD) {
     pm_cpu_dtor(cpu) ;
-    
+
     if (0 != pm_cpu_ctor(cpu, cpu->cfg))
       return ;
   }
@@ -120,11 +127,11 @@ __PM_PUBL void pm_cpu_rst (struct pm_cpu_t * cpu, int lvl)
 
   if (0 == MS) {
     _cpu_MS_clr(cpu) ;
-    pm_bus_rdy(bus, pm_cpu_id(cpu)) ;
+    pm_bus_rdy(cpu->bus, pm_cpu_id(cpu)) ;
   } else {
     _cpu_MS_set(cpu) ;
     _cpu_RN_set(cpu, PM_CPU_PL_M) ;
-    pm_bus_bsy(bus, pm_cpu_id(cpu)) ;
+    pm_bus_bsy(cpu->bus, pm_cpu_id(cpu)) ;
   }
 
   _cpu_RS_set(cpu, PM_CPU_PL_M) ;
@@ -319,7 +326,7 @@ __PM_PUBL void pm_cpu_clk (struct pm_cpu_t * cpu)
 
   case 0x0D : {
     cpu->xpr[a] = (u_word_t)(
-      (S_word_t)cpu->xpr[b] >> (u_word_t)( cpu->xpr[c] + s )
+      (s_word_t)cpu->xpr[b] >> (u_word_t)( cpu->xpr[c] + s )
     ) ;
   } break ;
 
@@ -515,12 +522,18 @@ __PM_PUBL void pm_cpu_clk (struct pm_cpu_t * cpu)
 
       case 0x3 : {
         u_word_t lvl =
-          /* 1+4-bit internal bus identifier */
-          ( ( ( a >> 0 ) & 0x1 ) << 4 ) | ( a >> 1 ) |
-          /* 1+5-bit external bus identifier */
-          ( ( ( u >> 2 ) & 0x1 ) << 5 ) | ( b >> 0 ) ;
+          /* 1+4-bit internal bus identifier   */
+          ( ( ( ( ( a >> 0 ) & 0x1 ) << 4 ) | ( a >> 1 ) ) <<  6 ) |
+          /* 1+5-bit external bus identifier   */
+          ( ( ( ( ( u >> 2 ) & 0x1 ) << 5 ) | ( b >> 0 ) ) <<  0 ) ;
 
-        pm_bus_rst(cpu->bus, lvl) ;
+        if (0 == ( ( u >> 3 ) & 0x1 )) {
+          /* soft reset */
+          pm_bus_rst(cpu->bus, +lvl) ;
+        } else {
+          /* hard reset */
+          pm_bus_rst(cpu->bus, -lvl) ;
+        }
       } break ;
       }
     } break ;
@@ -602,10 +615,10 @@ __PM_PUBL void pm_cpu_clk (struct pm_cpu_t * cpu)
       }
 
       if (res < 0) {
-        cpu->bus->hlt = 1 ;
+        pm_bus_rdy(cpu->bus, pm_cpu_id(cpu)) ;
       }
     } else {
-      cpu->bus->hlt = 1 ;
+      pm_bus_rdy(cpu->bus, pm_cpu_id(cpu)) ;
     }
   }
 

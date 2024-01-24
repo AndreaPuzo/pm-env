@@ -46,7 +46,6 @@ __PM_PUBL void pm_bus_clk (struct pm_bus_t * bus)
                                                            \
       if (ofs < ram->len && ofs + sizeof(dat) <= ram->len) \
         return pm_ram_ld##typ(ram, ofs) ;                  \
-      }                                                    \
     }                                                      \
                                                            \
     for (int id = 0 ; id < 0x4 ; ++id) {                   \
@@ -56,7 +55,6 @@ __PM_PUBL void pm_bus_clk (struct pm_bus_t * bus)
                                                            \
       if (ofs < iom->len)                                  \
         return pm_iom_ld##typ(iom, ofs) ;                  \
-      }                                                    \
     }                                                      \
   } while (0)
 
@@ -81,29 +79,29 @@ __PM_PUBL u_word_t pm_bus_ldw (struct pm_bus_t * bus, u_word_t adr)
 
 #undef _ld
 
-#define _st(typ)                                           \
-  do {                                                     \
-    for (int id = 0 ; id < 0x4 ; ++id) {                   \
-      struct pm_ram_t * ram = bus->ram + id ;              \
-                                                           \
-      u_word_t ofs = adr - ram->adr ;                      \
-                                                           \
-      if (ofs < ram->len && ofs + sizeof(dat) <= ram->len) \
-        pm_ram_st##typ(ram, ofs, dat) ;                    \
-        return ;                                           \
-      }                                                    \
-    }                                                      \
-                                                           \
-    for (int id = 0 ; id < 0x4 ; ++id) {                   \
-      struct pm_iom_t * iom = bus->iom + id ;              \
-                                                           \
-      u_word_t ofs = adr - iom->adr ;                      \
-                                                           \
-      if (ofs < iom->len)                                  \
-        pm_iom_ld##typ(iom, ofs, dat) ;                    \
-        return ;                                           \
-      }                                                    \
-    }                                                      \
+#define _st(typ)                                             \
+  do {                                                       \
+    for (int id = 0 ; id < 0x4 ; ++id) {                     \
+      struct pm_ram_t * ram = bus->ram + id ;                \
+                                                             \
+      u_word_t ofs = adr - ram->adr ;                        \
+                                                             \
+      if (ofs < ram->len && ofs + sizeof(dat) <= ram->len) { \
+        pm_ram_st##typ(ram, ofs, dat) ;                      \
+        return ;                                             \
+      }                                                      \
+    }                                                        \
+                                                             \
+    for (int id = 0 ; id < 0x4 ; ++id) {                     \
+      struct pm_iom_t * iom = bus->iom + id ;                \
+                                                             \
+      u_word_t ofs = adr - iom->adr ;                        \
+                                                             \
+      if (ofs < iom->len) {                                  \
+        pm_iom_st##typ(iom, ofs, dat) ;                      \
+        return ;                                             \
+      }                                                      \
+    }                                                        \
   } while (0)
 
 __PM_PUBL void pm_bus_stb (struct pm_bus_t * bus, u_word_t adr, u_byte_t dat)
@@ -139,7 +137,7 @@ __PM_PUBL void pm_bus_hlt (struct pm_bus_t * bus, u_word_t id)
 {
   id &= 0x3 ;
 
-  if (pm_bus_mst() == id) {
+  if (pm_bus_mst(bus) == id) {
     bus->ctr &= ~( 0xF << 0 ) ;
     bus->ctr |=  ( 0xF << 4 ) ;
   } else {
@@ -150,7 +148,7 @@ __PM_PUBL void pm_bus_hlt (struct pm_bus_t * bus, u_word_t id)
 
 __PM_PUBL void pm_bus_rdy (struct pm_bus_t * bus, u_word_t id)
 {
-  bus->ctr |=  ( 0x1 << ( 4 + ( id & 0x3 ) ) ;
+  bus->ctr |=  ( 0x1 << ( 4 + ( id & 0x3 ) ) ) ;
 }
 
 __PM_PUBL void pm_bus_bsy (struct pm_bus_t * bus, u_word_t id)

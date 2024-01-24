@@ -5,6 +5,8 @@
  * Device Interface                                                           *
  * -------------------------------------------------------------------------- */
 
+struct pm_dev_t ;
+
 typedef int      ( * pm_dev_ctor_t ) (struct pm_dev_t * dev, struct pm_cfg_t cfg) ;
 typedef void     ( * pm_dev_dtor_t ) (struct pm_dev_t * dev) ;
 typedef void     ( * pm_dev_rst_t  ) (struct pm_dev_t * dev, int lvl) ;
@@ -63,6 +65,7 @@ __PM_PUBL void     pm_iom_sth  (struct pm_iom_t * iom, u_word_t adr, u_half_t da
 __PM_PUBL void     pm_iom_stw  (struct pm_iom_t * iom, u_word_t adr, u_word_t dat) ;
 __PM_PUBL void     pm_iom_int  (struct pm_iom_t * iom, struct pm_dev_t * dev) ;
 __PM_PUBL u_word_t pm_iom_cks  (struct pm_iom_t * iom) ;
+__PM_PUBL u_word_t pm_iom_id   (struct pm_iom_t * iom) ;
 __PM_PUBL int      pm_iom_mnt  (struct pm_iom_t * iom, struct pm_dev_t * dev) ;
 __PM_PUBL int      pm_iom_umn  (struct pm_iom_t * iom, struct pm_dev_t * dev) ;
 

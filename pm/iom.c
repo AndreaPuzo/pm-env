@@ -1,4 +1,5 @@
 #include "pm.h"
+#include <string.h>
 
 __PM_PUBL int pm_iom_ctor (struct pm_iom_t * iom, struct pm_cfg_t cfg)
 {
@@ -91,6 +92,20 @@ __PM_PUBL void pm_iom_dtor (struct pm_iom_t * iom)
 
 __PM_PUBL void pm_iom_rst (struct pm_iom_t * iom, int lvl)
 {
+  const int RST_HRD = lvl < 0 ;
+  const int RST_ALL = ( lvl >> 10 ) & 0x1 ;
+  const int RST_ID  = ( lvl >>  6 ) & 0xF ;
+
+  if (0 == RST_ALL && RST_ID != pm_iom_id(iom))
+    return ;
+
+  if (0 != RST_HRD) {
+    pm_iom_dtor(iom) ;
+
+    if (0 != pm_iom_ctor(iom, iom->cfg))
+      return ;
+  }
+  
   for (int id = 0 ; id < 0x20 ; ++id) {
     struct pm_dev_t * dev = iom->dev[id] ;
 
@@ -100,21 +115,11 @@ __PM_PUBL void pm_iom_rst (struct pm_iom_t * iom, int lvl)
     dev->rst(dev, lvl) ;
   }
 
-  if (0 < lvl && lvl != iom->irq)
-    return ;
-
-  if (lvl < 0) {
-    pm_iom_dtor(iom) ;
-
-    if (0 != pm_iom_ctor(iom, iom->cfg))
-      return ;
-  }
-
   iom->ipr = U_WORD(0x00000000) ;
   iom->imr = U_WORD(0x00000000) ;
   iom->isr = U_WORD(0x00)       ;
 
-  pm_bus_int(iom, iom->irq) ;
+  pm_bus_int(iom->bus, iom->irq) ;
 }
 
 __PM_PUBL void pm_iom_clk (struct pm_iom_t * iom)
@@ -136,7 +141,7 @@ __PM_PUBL void pm_iom_clk (struct pm_iom_t * iom)
   for (int id = 0 ; id < 0x20 ; ++id) {
     if (0 != ( ( iom->ipr >> id ) & 0x1 )) {
       iom->isr = id ;
-      pm_bus_int(iom->bus, id) ;
+      pm_bus_int(iom->bus, iom->irq) ;
       break ;
     }
   }
@@ -160,7 +165,7 @@ __PM_PUBL void pm_iom_clk (struct pm_iom_t * iom)
   do {                                         \
     if (                                       \
       U_WORD(0x00000000) <= adr &&             \
-      adr <= U_WORD(0x00000010) &&             \
+      adr <= U_WORD(0x00000010)                \
     ) {                                        \
       if (0x0 <= adr && adr <= 0x3) {          \
         dat = iom->irq & 0xF ;                 \
@@ -234,7 +239,7 @@ __PM_PUBL u_word_t pm_iom_ldw (struct pm_iom_t * iom, u_word_t adr)
   do {                                         \
     if (                                       \
       U_WORD(0x00000000) <= adr &&             \
-      adr <= U_WORD(0x00000010) &&             \
+      adr <= U_WORD(0x00000010)                \
     ) {                                        \
       if (0x0 <= adr && adr <= 0x3) {          \
         iom->irq = dat & 0xF ;                 \
@@ -284,12 +289,17 @@ __PM_PUBL void pm_iom_stw (struct pm_iom_t * iom, u_word_t adr, u_word_t dat)
 
 __PM_PUBL void pm_iom_int (struct pm_iom_t * iom, struct pm_dev_t * dev)
 {
-  pm->ipr |= U_WORD(1) << dev->irq ;
+  iom->ipr |= U_WORD(0x1) << dev->irq ;
 }
 
 __PM_PUBL u_word_t pm_iom_cks (struct pm_iom_t * iom)
 {
   return pm_bus_cks(iom->bus) ;
+}
+
+__PM_PUBL u_word_t pm_iom_id (struct pm_iom_t * iom)
+{
+  return iom->irq & 0xF ;
 }
 
 #define _overlapping(a, b, c, d) ( 0 == ( b < c || a > d ) )

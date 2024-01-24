@@ -50,5 +50,6 @@ __PM_PUBL void     pm_ram_stb  (struct pm_ram_t * ram, u_word_t adr, u_byte_t da
 __PM_PUBL void     pm_ram_sth  (struct pm_ram_t * ram, u_word_t adr, u_half_t dat) ;
 __PM_PUBL void     pm_ram_stw  (struct pm_ram_t * ram, u_word_t adr, u_word_t dat) ;
 __PM_PUBL void     pm_ram_int  (struct pm_ram_t * ram) ;
+__PM_PUBL u_word_t pm_ram_id   (struct pm_ram_t * ram) ;
 
 #endif

@@ -101,10 +101,14 @@ __PM_PUBL void pm_ram_dtor (struct pm_ram_t * ram)
 
 __PM_PUBL void pm_ram_rst (struct pm_ram_t * ram, int lvl)
 {
-  if (0 < lvl && lvl != ( ( ram->sr >> PM_RAM_SRS_ID ) & PM_RAM_SRM_ID ))
+  const int RST_HRD = lvl < 0 ;
+  const int RST_ALL = ( lvl >> 10 ) & 0x1 ;
+  const int RST_ID  = ( lvl >>  6 ) & 0xF ;
+
+  if (0 == RST_ALL && RST_ID != pm_ram_id(ram))
     return ;
 
-  if (lvl < 0) {
+  if (0 != RST_HRD) {
     pm_ram_dtor(ram) ;
 
     if (0 != pm_ram_ctor(ram, ram->cfg))
@@ -188,4 +192,9 @@ __PM_PUBL void pm_ram_stw (struct pm_ram_t * ram, u_word_t adr, u_word_t dat)
 __PM_PUBL void pm_ram_int (struct pm_ram_t * ram)
 {
   pm_bus_int(ram->bus, ( ram->sr >> PM_RAM_SRS_ID ) & PM_RAM_SRM_ID) ;
+}
+
+__PM_PUBL u_word_t pm_ram_id (struct pm_ram_t * ram)
+{
+  return ( ( ram->sr >> PM_RAM_SRS_ID ) & PM_RAM_SRM_ID ) & 0xF ;
 }
