@@ -22,7 +22,7 @@ __PM_PUBL int pm_ram_ctor (struct pm_ram_t * ram, struct pm_cfg_t cfg)
     if (0 == strcmp(args, "-i") || 0 == strcmp(args, "--irq")) {
       u_word_t id ;
       char * endptr = NULL ;
-      
+ 
       if (0 != pm_str_to_uint(cfg.argv[++argi], &endptr, 0, &id)) {
         fprintf(stderr, "error: ram: expected unsigned integer for option %s\n", args) ;
         return -2 ;
@@ -53,13 +53,7 @@ __PM_PUBL int pm_ram_ctor (struct pm_ram_t * ram, struct pm_cfg_t cfg)
       }
 
       if (NULL != endptr) {
-        if (0 == strcmp(endptr, "k")) {
-          len *= 1000 ;
-        } else if (0 == strcmp(endptr, "m")) {
-          len *= 10000000 ;
-        } else if (0 == strcmp(endptr, "g")) {
-          len *= 1000000000 ;
-        } else if (0 == strcmp(endptr, "K")) {
+        if (0 == strcmp(endptr, "K")) {
           len <<= 10 ;
         } else if (0 == strcmp(endptr, "M")) {
           len <<= 20 ;
@@ -86,7 +80,7 @@ __PM_PUBL int pm_ram_ctor (struct pm_ram_t * ram, struct pm_cfg_t cfg)
     ram->buf = (u_byte_t *)malloc(ram->len * sizeof(u_byte_t)) ;
   }
 
-  if (NULL == ram->buf || 0 == ram->len) {
+  if (NULL == ram->buf || ram->len < U_WORD(0x1000)) {
     fprintf(stderr, "error: ram: unexpected buffer or length\n") ;
     return -4 ;
   }
@@ -107,16 +101,10 @@ __PM_PUBL void pm_ram_dtor (struct pm_ram_t * ram)
 
 __PM_PUBL void pm_ram_rst (struct pm_ram_t * ram, int lvl)
 {
-  const int HARD = lvl < 0 ;
-
-  if (lvl < 0) {
-    lvl = -lvl ;
-  }
-
-  if (( ( ram->sr >> PM_RAM_SRS_ID ) & PM_RAM_SRM_ID ) != lvl)
+  if (0 < lvl && lvl != ( ( ram->sr >> PM_RAM_SRS_ID ) & PM_RAM_SRM_ID ))
     return ;
 
-  if (0 != HARD) {
+  if (lvl < 0) {
     pm_ram_dtor(ram) ;
 
     if (0 != pm_ram_ctor(ram, ram->cfg))
