@@ -66,8 +66,6 @@ __PM_PUBL int pm_ram_ctor (struct pm_ram_t * ram, struct pm_cfg_t cfg)
     } else if (0 == strcmp(args, "--le") || 0 == strcmp(args, "--be")) {
       ram->sr &= ~PM_RAM_SRF_BO ;
       ram->sr |= ( ( ( 'b' == args[2] ) *  PM_RAM_SRM_BO ) << PM_RAM_SRS_BO ) ;
-    } else {
-      ram->bus = (struct pm_bus_t *)args ;
     }
   }
 

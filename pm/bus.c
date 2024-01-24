@@ -1,8 +1,65 @@
 #include "pm.h"
+#include <string.h>
 
 __PM_PUBL int pm_bus_ctor (struct pm_bus_t * bus, struct pm_cfg_t cfg)
 {
-  return 0 ;
+  bus->ctr = U_WORD(0x00000000) ;
+
+  if (0 == cfg.argc || NULL == cfg.argv)
+    return -1 ;
+
+  bus->cfg = cfg ;
+
+  for (int argi = 0 ; argi < cfg.argc ; ++argi) {
+    char * args = cfg.argv[argi] ;
+
+    if (
+      0 == strncmp(args, "--cpu=", 6) ||
+      0 == strncmp(args, "--ram=", 6) ||
+      0 == strncmp(args, "--iom=", 6)
+    ) {
+      char     typ = args[2] ;
+      u_word_t id ;
+      char * endptr = NULL ;
+
+      if (0 != pm_str_to_uint(args + 6, &endptr, 0, &id)) {
+        fprintf(stderr, "error: bus: expected unsigned integer for option %s\n", args) ;
+        return -2 ;
+      }
+
+      id &= 0x3 ;
+
+      struct pm_cfg_t dat ;
+
+      if (0 != pm_cfg_ctor(&dat, cfg.argv[++argi])) {
+        fprintf(stderr, "error: bus: cannot create the configuration for device %s\n", args + 2) ;
+        return -3 ;
+      }
+
+      int res ;
+
+      if ('c' == typ) {
+        res = pm_cpu_ctor(bus->cpu + id, dat) ;
+      } else if ('r' == typ) {
+        res = pm_ram_ctor(bus->ram + id, dat) ;
+      } else {
+        res = pm_iom_ctor(bus->iom + id, dat) ;
+      }
+
+      if (0 != res) {
+        fprintf(stderr, "error: bus: cannot configure device %s\n", args + 2) ;
+        return -4 ;
+      }
+    }
+  }
+
+  for (int id = 0 ; id < 0x4 ; ++id) {
+    if (0 != pm_bus_is_bsy(bus, id))
+      return 0 ;
+  }
+
+  fprintf(stderr, "error: bus: the connection has no master\n") ;
+  return -5 ;
 }
 
 __PM_PUBL void pm_bus_dtor (struct pm_bus_t * bus)
@@ -11,7 +68,13 @@ __PM_PUBL void pm_bus_dtor (struct pm_bus_t * bus)
     pm_cpu_dtor(bus->cpu + id) ;
     pm_ram_dtor(bus->ram + id) ;
     pm_iom_dtor(bus->iom + id) ;
+
+    pm_cfg_dtor(&bus->cpu[id].cfg) ;
+    pm_cfg_dtor(&bus->ram[id].cfg) ;
+    pm_cfg_dtor(&bus->iom[id].cfg) ;
   }
+
+  pm_cfg_dtor(&bus->cfg) ;
 }
 
 __PM_PUBL void pm_bus_rst (struct pm_bus_t * bus, int lvl)

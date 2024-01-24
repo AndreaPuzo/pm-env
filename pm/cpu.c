@@ -83,8 +83,6 @@ __PM_PUBL int pm_cpu_ctor (struct pm_cpu_t * cpu, struct pm_cfg_t cfg)
       cpu->pc[0] = pc ;
     } else if (0 == strcmp(args, "-m") || 0 == strcmp(args, "--master")) {
       _cpu_MS_set(cpu) ;
-    } else {
-      cpu->bus = (struct pm_bus_t *)args ;
     }
   }
 

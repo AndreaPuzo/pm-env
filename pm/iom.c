@@ -60,8 +60,6 @@ __PM_PUBL int pm_iom_ctor (struct pm_iom_t * iom, struct pm_cfg_t cfg)
       }
 
       iom->len = len ;
-    } else {
-      iom->bus = (struct pm_bus_t *)args ;
     }
   }
 
