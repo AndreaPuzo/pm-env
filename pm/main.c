@@ -5,7 +5,7 @@
 int main (int argc, char ** argv)
 {
   const char cfgstr [] =
-    "--cpu=0 '--irq 0x10 --adr 0x00000000 --master'        ; configuration for master\n"
+    "--cpu=0 :../res/cfg/cpu.cfg\n" // '--irq 0x10 --adr 0x00000000 --master'        ; configuration for master\n"
     "--cpu=1 '--irq 0x11 --adr 0x80000000         '        ; configuration for slave\n"
     "--cpu=2 '--irq 0x12 --adr 0x80000000         '        ; configuration for slave\n"
     "--cpu=3 '--irq 0x13 --adr 0x80000000         '        ; configuration for slave\n"

@@ -83,6 +83,7 @@ __PM_PUBL int pm_str_to_sint (const char * str, char ** endptr, int rad, s_word_
 __PM_PUBL int pm_str_to_chr  (const char * str, char ** endptr) ;
 __PM_PUBL int pm_chr_to_str  (char * str, int chr) ;
 
+# include "ldr.h"
 # include "cfg.h"
 # include "cpu.h"
 # include "ram.h"

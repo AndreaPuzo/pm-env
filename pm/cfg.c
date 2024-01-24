@@ -3,10 +3,10 @@
 
 __PM_PRIV char * _read_file (const char * fn)
 {
-  FILE * fp = fopen(fn, "rb") ;
+  FILE * fp = fopen(fn, "r") ;
 
   if (NULL == fp) {
-    fprintf(stderr, "error: cannot open file %s\n", fn) ;
+    fprintf(stderr, "error: cannot open file `%s`\n", fn) ;
     return NULL ;
   }
 
