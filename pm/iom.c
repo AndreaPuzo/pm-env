@@ -3,7 +3,6 @@
 
 __PM_PUBL int pm_iom_ctor (struct pm_iom_t * iom, struct pm_cfg_t cfg)
 {
-  iom->bus = NULL               ;
   iom->irq = U_WORD(0x0)        ;
   iom->adr = U_WORD(0x00000000) ;
   iom->len = U_WORD(0)          ;

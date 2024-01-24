@@ -36,13 +36,18 @@ __PM_PUBL int pm_bus_ctor (struct pm_bus_t * bus, struct pm_cfg_t cfg)
         return -3 ;
       }
 
+      pm_cfg_dump(&dat, stderr) ;
+
       int res ;
 
       if ('c' == typ) {
+        bus->cpu[id].bus = bus ;
         res = pm_cpu_ctor(bus->cpu + id, dat) ;
       } else if ('r' == typ) {
+        bus->ram[id].bus = bus ;
         res = pm_ram_ctor(bus->ram + id, dat) ;
       } else {
+        bus->iom[id].bus = bus ;
         res = pm_iom_ctor(bus->iom + id, dat) ;
       }
 

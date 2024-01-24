@@ -71,16 +71,16 @@ __PM_PUBL int pm_cpu_ctor (struct pm_cpu_t * cpu, struct pm_cfg_t cfg)
       }
 
       _cpu_ID_set(cpu, ( id & 0xF )) ;
-    } else if (0 == strcmp(args, "-e") || 0 == strcmp(args, "--entry")) {
-      u_word_t pc ;
+    } else if (0 == strcmp(args, "-a") || 0 == strcmp(args, "--adr")) {
+      u_word_t adr ;
       char * endptr = NULL ;
 
-      if (0 != pm_str_to_uint(cfg.argv[++argi], &endptr, 0, &pc)) {
+      if (0 != pm_str_to_uint(cfg.argv[++argi], &endptr, 0, &adr)) {
         fprintf(stderr, "error: cpu: expected unsigned integer for option %s\n", args) ;
         return -2 ;
       }
 
-      cpu->pc[0] = pc ;
+      cpu->pc[0] = adr ;
     } else if (0 == strcmp(args, "-m") || 0 == strcmp(args, "--master")) {
       _cpu_MS_set(cpu) ;
     }

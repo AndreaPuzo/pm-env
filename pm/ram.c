@@ -4,7 +4,6 @@
 
 __PM_PUBL int pm_ram_ctor (struct pm_ram_t * ram, struct pm_cfg_t cfg)
 {
-  ram->bus = NULL               ;
   ram->sr  = U_WORD(0x00000000) ;
   ram->adr = U_WORD(0x00000000) ;
   ram->len = U_WORD(0)          ;

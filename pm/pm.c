@@ -150,7 +150,7 @@ __PM_PUBL int pm_str_to_uint (const char * str, char ** endptr, int rad, u_word_
       return -2 ;
   }
 
-  if (res < U_WORD_MIN || U_WORD_MAX < res)
+  if (U_WORD_MAX < res)
     return -3 ;
 
   *num = (u_word_t)res ;
