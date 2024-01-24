@@ -137,6 +137,7 @@
 struct pm_cpu_t {
   struct pm_bus_t * bus          ;
   struct pm_cfg_t   cfg          ;
+  u_word_t          irq          ;
   u_word_t          ins          ;
   u_word_t          pc  [ 0x2  ] ;
   u_word_t          ck  [ 0x2  ] ;
