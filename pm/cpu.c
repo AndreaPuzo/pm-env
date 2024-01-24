@@ -211,7 +211,370 @@ __PM_PUBL void pm_cpu_clk (struct pm_cpu_t * cpu)
   /* execute the instruction */
 
   switch (o) {
-  /* TODO (#2): execution engine */
+  case 0x00 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] + (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x01 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] - (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x02 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] * (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x03 : {
+    s += cpu->xpr[c] ;
+
+    if (0 == s) {
+      pm_cpu_int(cpu, PM_CPU_INT_DZ) ;
+      break ;
+    }
+
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] / (u_word_t)s
+    ) ;
+  } break ;
+
+  case 0x04 : {
+    s += cpu->xpr[c] ;
+
+    if (0 == s) {
+      pm_cpu_int(cpu, PM_CPU_INT_DZ) ;
+      break ;
+    }
+
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] % (u_word_t)s
+    ) ;
+  } break ;
+
+  case 0x05 : {
+    cpu->xpr[a] = (u_word_t)(
+      (s_word_t)cpu->xpr[b] * (s_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x06 : {
+    s += cpu->xpr[c] ;
+
+    if (0 == s) {
+      pm_cpu_int(cpu, PM_CPU_INT_DZ) ;
+      break ;
+    }
+
+    cpu->xpr[a] = (u_word_t)(
+      (s_word_t)cpu->xpr[b] / (s_word_t)s
+    ) ;
+  } break ;
+
+  case 0x07 : {
+    s += cpu->xpr[c] ;
+
+    if (0 == s) {
+      pm_cpu_int(cpu, PM_CPU_INT_DZ) ;
+      break ;
+    }
+
+    cpu->xpr[a] = (u_word_t)(
+      (s_word_t)cpu->xpr[b] % (s_word_t)s
+    ) ;
+  } break ;
+
+  case 0x08 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] & (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x09 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] | (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x0A : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] ^ (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x0B : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] << (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x0C : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)cpu->xpr[b] >> (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x0D : {
+    cpu->xpr[a] = (u_word_t)(
+      (S_word_t)cpu->xpr[b] >> (u_word_t)( cpu->xpr[c] + s )
+    ) ;
+  } break ;
+
+  case 0x0E : {
+    u = ( u << 4 ) | ( c >> 1 ) ;
+
+    if (0 == ( c & 0x1 )) {
+      cpu->xpr[a] = ( cpu->xpr[b] & U_WORD(0xFFFF0000) ) | ( u <<  0 ) ;
+    } else {
+      cpu->xpr[a] = ( cpu->xpr[b] & U_WORD(0x0000FFFF) ) | ( u << 16 ) ;
+    }
+  } break ;
+
+  case 0x0F : {
+    s = ( s << 4 ) | ( c >> 1 ) ;
+    cpu->xpr[a] = cpu->pc[0] ;
+
+    if (0 == ( c & 0x1 )) {
+      cpu->pc[0]  = cpu->xpr[b] + s ;
+    } else {
+      cpu->pc[0] += (cpu->xpr[b] + s) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x10 : {
+    if ((u_word_t)cpu->xpr[a] == (u_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x11 : {
+    if ((u_word_t)cpu->xpr[a] != (u_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x12 : {
+    if ((u_word_t)cpu->xpr[a] <  (u_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x13 : {
+    if ((u_word_t)cpu->xpr[a] <= (u_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x14 : {
+    if ((s_word_t)cpu->xpr[a] <  (s_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x15 : {
+    if ((s_word_t)cpu->xpr[a] <= (s_word_t)cpu->xpr[b]) {
+      cpu->pc[0] += ( cpu->xpr[c] + s ) * sizeof(u_word_t) ;
+    }
+  } break ;
+
+  case 0x16 : {
+    cpu->xpr[a] = (u_word_t)((s_word_t)
+      (s_byte_t)pm_cpu_ldb(cpu, cpu->xpr[b] + cpu->xpr[c] + s)
+    ) ;
+  } break ;
+
+  case 0x17 : {
+    cpu->xpr[a] = (u_word_t)((s_word_t)
+      (s_half_t)pm_cpu_ldh(cpu, cpu->xpr[b] + cpu->xpr[c] + s)
+    ) ;
+  } break ;
+
+  case 0x18 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_byte_t)pm_cpu_ldb(cpu, cpu->xpr[b] + cpu->xpr[c] + s)
+    ) ;
+  } break ;
+
+  case 0x19 : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_half_t)pm_cpu_ldh(cpu, cpu->xpr[b] + cpu->xpr[c] + s)
+    ) ;
+  } break ;
+
+  case 0x1A : {
+    cpu->xpr[a] = (u_word_t)(
+      (u_word_t)pm_cpu_ldw(cpu, cpu->xpr[b] + cpu->xpr[c] + s)
+    ) ;
+  } break ;
+
+  case 0x1B : {
+    pm_cpu_stb(cpu, cpu->xpr[b] + cpu->xpr[c] + s, (u_byte_t)cpu->xpr[a]) ;
+  } break ;
+
+  case 0x1C : {
+    pm_cpu_sth(cpu, cpu->xpr[b] + cpu->xpr[c] + s, (u_half_t)cpu->xpr[a]) ;
+  } break ;
+
+  case 0x1D : {
+    pm_cpu_stw(cpu, cpu->xpr[b] + cpu->xpr[c] + s, (u_word_t)cpu->xpr[a]) ;
+  } break ;
+
+  case 0x1E : {
+    switch (c) {
+    case 0x00 : {
+      _cpu_psb(cpu, cpu->xpr + a, (u_byte_t)( cpu->xpr[b] + s )) ;
+    } break ;
+
+    case 0x01 : {
+      _cpu_psh(cpu, cpu->xpr + a, (u_half_t)( cpu->xpr[b] + s )) ;
+    } break ;
+
+    case 0x02 : {
+      _cpu_psw(cpu, cpu->xpr + a, (u_word_t)( cpu->xpr[b] + s )) ;
+    } break ;
+
+    case 0x03 : {
+      cpu->xpr[b] = (u_word_t)((s_word_t)
+        (s_byte_t)_cpu_plb(cpu, cpu->xpr + a)
+      ) ;
+    } break ;
+
+    case 0x04 : {
+      cpu->xpr[b] = (u_word_t)(
+        (u_byte_t)_cpu_plb(cpu, cpu->xpr + a)
+      ) ;
+    } break ;
+
+    case 0x05 : {
+      cpu->xpr[b] = (u_word_t)(
+        (u_half_t)_cpu_plh(cpu, cpu->xpr + a)
+      ) ;
+    } break ;
+
+    case 0x06 : {
+      cpu->xpr[b] = (u_word_t)(
+        (u_word_t)_cpu_plw(cpu, cpu->xpr + a)
+      ) ;
+    } break ;
+
+    case 0x07 : {
+      cpu->xpr[b] = (u_word_t)((s_word_t)
+        (s_half_t)_cpu_plh(cpu, cpu->xpr + a)
+      ) ;
+    } break ;
+
+    case 0x08 : {
+      const u_word_t PL = _cpu_PL_get(cpu) ;
+
+      /* save the current frame pointer */
+
+      _cpu_psw(cpu, cpu->xpr + a, cpu->xpr[b]) ;
+
+      /* create a frame of [u] bytes */
+
+      cpu->xpr[b]  = cpu->xpr[a] ;
+
+      if (0 == _cpu_SK_get(cpu, PL)) {
+        cpu->xpr[a] -= u ;
+      } else {
+        cpu->xpr[a] += u ;
+      }
+    } break ;
+
+    case 0x09 : {
+      /* restore the previous frame */
+
+      cpu->xpr[a] = cpu->xpr[b] ;
+      cpu->xpr[b] = _cpu_plw(cpu, cpu->xpr + a) ;
+    } break ;
+
+    case 0x0A : {
+      cpu->xpr[a] = (u_word_t)(
+        ~(u_word_t)cpu->xpr[b] + s
+      ) ;
+    } break ;
+
+    case 0x0B : {
+      switch ( u & 0x3 ) {
+      case 0x0 : {
+        u_word_t tmp = cpu->xpr[a] ;
+        cpu->xpr[a]  = cpu->xpr[b] ;
+        cpu->xpr[b]  = tmp         ;
+      } break ;
+
+      case 0x1 : {
+        _cpu_int(cpu, 0, a) ;
+      } break ;
+
+      case 0x2 : {
+        _cpu_int(cpu, 1, 0) ;
+      } break ;
+
+      case 0x3 : {
+        u_word_t lvl =
+          /* 1+4-bit internal bus identifier */
+          ( ( ( a >> 0 ) & 0x1 ) << 4 ) | ( a >> 1 ) |
+          /* 1+5-bit external bus identifier */
+          ( ( ( u >> 2 ) & 0x1 ) << 5 ) | ( b >> 0 ) ;
+
+        pm_bus_rst(cpu->bus, lvl) ;
+      } break ;
+      }
+    } break ;
+
+    case 0x0C : {
+      cpu->xpr[b] = cpu->csr[a] & s ;
+    } break ;
+
+    case 0x0D : {
+      const u_word_t PL = _cpu_PL_get(cpu) ;
+
+      if (( a >> 3 ) < PL || PM_CPU_PL_U == PL) {
+        pm_cpu_int(cpu, PM_CPU_INT_GP) ;
+        break ;
+      }
+
+      cpu->csr[a] = cpu->xpr[b] | u ;
+    } break ;
+
+    case 0x0E : {
+      const u_word_t SHF = ( u >> 0 ) & 0x7 ;
+      const u_word_t MSK = ( u >> 4 ) & 0xF ;
+
+      cpu->xpr[b] = ( cpu->csr[a] >> ( SHF << 2 ) ) & MSK ;
+    } break ;
+
+    case 0x0F : {
+      const u_word_t PL = _cpu_PL_get(cpu) ;
+
+      if (( a >> 3 ) < PL || PM_CPU_PL_U == PL) {
+        pm_cpu_int(cpu, PM_CPU_INT_GP) ;
+        break ;
+      }
+
+      const u_word_t SHF = ( u >> 0 ) & 0x7 ;
+      const u_word_t MSK = ( u >> 4 ) & 0xF ;
+      const u_word_t VAL = ( u >> 8 ) & 0xF ;
+
+      cpu->csr[a] &= ~( U_WORD(0xF) << ( SHF << 2 ) ) ;
+      cpu->csr[a] |=  ( ( cpu->xpr[b] | VAL ) & MSK ) << ( SHF << 2 ) ;
+    } break ;
+
+    case 0x10 : case 0x11 : case 0x12 : case 0x13 :
+    case 0x14 : case 0x15 : case 0x16 : case 0x17 :
+    case 0x18 : case 0x19 : case 0x1A : case 0x1B :
+    case 0x1C : case 0x1D : case 0x1E : case 0x1F : {
+      pm_cpu_int(cpu, PM_CPU_INT_UD) ;
+    } break ;
+    }
+  } break ;
+
+  case 0x1F : {
+    pm_cpu_int(cpu, PM_CPU_INT_UD) ;
+  } break ;
   }
 
   /* update the context */

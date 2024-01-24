@@ -1,7 +1,7 @@
 .------------------------------------------------------------------------.
 | INSTRUCTION                          | ASSEMBLY                        |
 |--------------------------------------|---------------------------------|
-|      M/V/U/S     C     B     A     O | MNE-  OPERANDS                  |
+|          U/S     C     B     A     O | MNE-  OPERANDS                  |
 |    V   M   X                         | MONIC                           |
 |--------------------------------------|---------------------------------|
 | SSSSSSSSSSSS CCCCC BBBBB AAAAA 00000 | ADD   XPR[A], XPR[B], XPR[C], S |
@@ -50,9 +50,11 @@
 | ??????????00 01011 AAAAA BBBBB 11110 | XHG   XPR[A], XPR[B]            |
 | ??????????01 01011 ????? AAAAA 11110 | INT   A                         |
 | ??????????10 01011 ????? AAAAA 11110 | RTI                             |
-| ??????????11 01011 BBBBB AAAA0 11110 | RST   AB                        |
-| ??????????11 01011 BBBBB AAAA1 11110 | RST   AB                        |
-| UUUUUUUUUUUU 01100 BBBBB AAAAA 11110 | CSRLD CSR[A], XPR[B], U         |
+| ?????????011 01011 BBBBB AAAA0 11110 | RST   A, B (---/---)            |
+| ?????????011 01011 BBBBB AAAA1 11110 | RST   A, B (INT/---)            |
+| ?????????111 01011 BBBBB AAAA0 11110 | RST   A, B (---/EXT)            |
+| ?????????111 01011 BBBBB AAAA1 11110 | RST   A, B (INT/EXT)            |
+| SSSSSSSSSSSS 01100 BBBBB AAAAA 11110 | CSRLD CSR[A], XPR[B], S         |
 | UUUUUUUUUUUU 01101 BBBBB AAAAA 11110 | CSRST CSR[A], XPR[B], U         |
 | ????MMMM?XXX 01110 BBBBB AAAAA 11110 | CSRGE CSR[A], XPR[B], M, X      |
 | VVVVMMMM?XXX 01111 BBBBB AAAAA 11110 | CSRSE CSR[A], XPR[B], M, X, V   |
