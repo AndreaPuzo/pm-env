@@ -140,15 +140,18 @@ __PM_PUBL void pm_stw_be (u_byte_t * dst, u_word_t src)
 
 __PM_PUBL int pm_str_to_uint (const char * str, char ** endptr, int rad, u_word_t * num)
 {
+  if (NULL == str)
+    return -1 ;
+
   unsigned long res = strtoul(str, endptr, rad) ;
 
   if (0 == res || ULONG_MAX == res) {
     if (ERANGE == errno)
-      return -1 ;
+      return -2 ;
   }
 
   if (res < U_WORD_MIN || U_WORD_MAX < res)
-    return -2 ;
+    return -3 ;
 
   *num = (u_word_t)res ;
 
@@ -157,15 +160,18 @@ __PM_PUBL int pm_str_to_uint (const char * str, char ** endptr, int rad, u_word_
 
 __PM_PUBL int pm_str_to_sint (const char * str, char ** endptr, int rad, s_word_t * num)
 {
+  if (NULL == str)
+    return -1 ;
+
   signed long res = strtol(str, endptr, rad) ;
 
   if (0 == *num || LONG_MIN == *num || LONG_MAX == *num) {
     if (ERANGE == errno)
-      return -1 ;
+      return -2 ;
   }
 
   if (res < S_WORD_MIN || S_WORD_MAX < res)
-    return -2 ;
+    return -3 ;
 
   *num = (s_word_t)res ;
 

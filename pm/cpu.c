@@ -16,8 +16,13 @@ __PM_PRIV u_word_t _cpu_trs   (struct pm_cpu_t * cpu, u_word_t adr, u_word_t xwr
 __PM_PRIV int      _cpu_xhgsp (struct pm_cpu_t * cpu, u_word_t dst_pl, u_word_t src_pl) ;
 __PM_PRIV int      _cpu_int   (struct pm_cpu_t * cpu, u_word_t fun, u_word_t dat) ;
 
-#define _cpu_PL_set(cpu, dat) _cpu_secsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), dat, PM_CPU_SRS_PL, PM_CPU_SRM_PL)
+#define _cpu_PL_set(cpu, dat) _cpu_secsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_PL, PM_CPU_SRM_PL, dat)
 #define _cpu_PL_get(cpu)      _cpu_gecsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_PL, PM_CPU_SRM_PL)
+#define _cpu_ID_set(cpu, dat) _cpu_secsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_ID, PM_CPU_SRM_ID, dat)
+#define _cpu_ID_get(cpu)      _cpu_gecsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_ID, PM_CPU_SRM_ID)
+#define _cpu_MS_set(cpu)      _cpu_secsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_MS, PM_CPU_SRM_MS, 0x1)
+#define _cpu_MS_clr(cpu)      _cpu_secsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_MS, PM_CPU_SRM_MS, 0x0)
+#define _cpu_MS_get(cpu)      _cpu_gecsr(cpu, PM_CPU_CSR(PM_CPU_PL_M, PM_CPU_SR), PM_CPU_SRS_MS, PM_CPU_SRM_MS)
 
 #define _cpu_RN_set(cpu, pl)  _cpu_secsr(cpu, PM_CPU_CSR(pl, PM_CPU_SR), PM_CPU_SRS_RN, PM_CPU_SRM_RN, 0x1)
 #define _cpu_RS_set(cpu, pl)  _cpu_secsr(cpu, PM_CPU_CSR(pl, PM_CPU_SR), PM_CPU_SRS_RS, PM_CPU_SRM_RS, 0x1)
@@ -46,6 +51,8 @@ __PM_PRIV int      _cpu_int   (struct pm_cpu_t * cpu, u_word_t fun, u_word_t dat
 
 __PM_PUBL int pm_cpu_ctor (struct pm_cpu_t * cpu, struct pm_cfg_t cfg)
 {
+  _cpu_MS_clr(cpu) ;
+
   if (0 == cfg.argc || NULL == cfg.argv)
     return -1 ;
 
@@ -54,22 +61,28 @@ __PM_PUBL int pm_cpu_ctor (struct pm_cpu_t * cpu, struct pm_cfg_t cfg)
   for (int argi = 0 ; argi < cfg.argc ; ++argi) {
     char * args = cfg.argv[argi] ;
 
-    if (0 == strcmp(args, "--bus") || 0 == strcmp(args, "-b")) {
-      if (argi + 1 == cfg.argc) {
-        fprintf(stderr, "error: cpu: missing argument for option %s\n", args) ;
+    if (0 == strcmp(args, "-i") || 0 == strcmp(args, "--irq")) {
+      u_word_t id ;
+      char * endptr = NULL ;
+ 
+      if (0 != pm_str_to_uint(cfg.argv[++argi], &endptr, 0, &id)) {
+        fprintf(stderr, "error: cpu: expected unsigned integer for option %s\n", args) ;
         return -2 ;
       }
 
-      cpu->bus = (struct pm_bus_t *)cfg.argv[++argi] ;
-    } else if (0 == strcmp(args, "--entry") || 0 == strcmp(args, "-e")) {
-      if (argi + 1 == cfg.argc) {
-        fprintf(stderr, "error: cpu: missing argument for option %s\n", args) ;
+      _cpu_ID_set(cpu, ( id & 0xF )) ;
+    } else if (0 == strcmp(args, "-e") || 0 == strcmp(args, "--entry")) {
+      u_word_t pc ;
+      char * endptr = NULL ;
+
+      if (0 != pm_str_to_uint(cfg.argv[++argi], &endptr, 0, &pc)) {
+        fprintf(stderr, "error: cpu: expected unsigned integer for option %s\n", args) ;
         return -2 ;
       }
 
-      cpu->pc[0] = (u_word_t)strtoul(cfg.argv[++argi], NULL, 0) ;
-
-      /* TODO (#1): check [errno] for errors */
+      cpu->pc[0] = pc ;
+    } else if (0 == strcmp(args, "-m") || 0 == strcmp(args, "--master")) {
+      _cpu_MS_set(cpu) ;
     } else {
       cpu->bus = (struct pm_bus_t *)args ;
     }
@@ -95,6 +108,8 @@ __PM_PUBL void pm_cpu_rst (struct pm_cpu_t * cpu, int lvl)
       return ;
   }
 
+  const u_word_t MS = _cpu_MS_get(cpu) ;
+
   cpu->ck[0] = cpu->ck[1] = U_WORD(0) ;
 
   for (int idx = 0 ; idx < 0x20 ; ++idx) {
@@ -103,8 +118,17 @@ __PM_PUBL void pm_cpu_rst (struct pm_cpu_t * cpu, int lvl)
     cpu->fpr[idx] = U_WORD(0x00000000) ;
   }
 
-  _cpu_RN_set(cpu, PM_CPU_PL_M) ;
+  if (0 == MS) {
+    _cpu_MS_clr(cpu) ;
+    pm_bus_rdy(bus, pm_cpu_id(cpu)) ;
+  } else {
+    _cpu_MS_set(cpu) ;
+    _cpu_RN_set(cpu, PM_CPU_PL_M) ;
+    pm_bus_bsy(bus, pm_cpu_id(cpu)) ;
+  }
+
   _cpu_RS_set(cpu, PM_CPU_PL_M) ;
+  pm_bus_int(cpu->bus, _cpu_ID_get(cpu)) ;
 }
 
 __PM_PUBL void pm_cpu_clk (struct pm_cpu_t * cpu)
@@ -284,13 +308,18 @@ __PM_PUBL void pm_cpu_int (struct pm_cpu_t * cpu, u_word_t num)
   
   u_word_t pl = PM_CPU_PL_M ;
 
-  if (0 == HS && 0 != ((IDR >> num) & 0x1)) {
+  if (0 == HS && 0 != ( ( IDR >> num ) & 0x1 )) {
     pl = PM_CPU_PL_H ;
-  } else if (0 == SS && 0 != ((IDR >> num) & 0x1)) {
+  } else if (0 == SS && 0 != ( ( IDR >> num ) & 0x1 )) {
     pl = PM_CPU_PL_S ;
   }
 
   cpu->csr[PM_CPU_CSR(pl, PM_CPU_IPR)] |= U_WORD(1) << num ;
+}
+
+__PM_PUBL u_word_t pm_cpu_id (struct pm_cpu_t * cpu)
+{
+  return _cpu_ID_get(cpu) & 0x3 ;
 }
 
 #define _dec_sp(siz)                       \
@@ -510,7 +539,6 @@ __PM_PRIV int _cpu_xhgsp (struct pm_cpu_t * cpu, const u_word_t DST_PL, const u_
     pm_cpu_stw(cpu, SRC_ISP + (0x29 + idx) * sizeof(u_word_t),
       src_fpr[idx]) ;
   }
-
 
   /* switch to destination PL */
   _cpu_PL_set(cpu, DST_PL) ;

@@ -135,7 +135,7 @@ __PM_PUBL u_word_t pm_bus_cks (struct pm_bus_t * bus)
   return bus->cpu[id].ck[0] ;
 }
 
-__PM_PUBL void pm_bus_hlt (struct pm_bus_t * bus, int id)
+__PM_PUBL void pm_bus_hlt (struct pm_bus_t * bus, u_word_t id)
 {
   id &= 0x3 ;
 
@@ -148,32 +148,26 @@ __PM_PUBL void pm_bus_hlt (struct pm_bus_t * bus, int id)
   }
 }
 
-__PM_PUBL void pm_bus_rdy (struct pm_bus_t * bus, int id)
+__PM_PUBL void pm_bus_rdy (struct pm_bus_t * bus, u_word_t id)
 {
-  bus->ctr |= 0x1 << ( 4 + ( id & 0x3 ) ) ;
+  bus->ctr |=  ( 0x1 << ( 4 + ( id & 0x3 ) ) ;
 }
 
-__PM_PUBL void pm_bus_bsy (struct pm_bus_t * bus, int id)
+__PM_PUBL void pm_bus_bsy (struct pm_bus_t * bus, u_word_t id)
 {
   bus->ctr &= ~( 0x1 << ( 4 + ( id & 0x3 ) ) ) ;
 }
 
-__PM_PUBL int pm_bus_id (struct pm_bus_t * bus, struct pm_cpu_t * cpu)
-{
-  return cpu->irq & 0xF ;
-}
-
 __PM_PUBL int pm_bus_rint (struct pm_bus_t * bus, struct pm_cpu_t * cpu, int id, u_word_t num)
 {
-  if (0x4 <= id)
-    return -1 ;
+  id &= 0x3 ;
 
   if (0 != pm_bus_is_bsy(bus, id))
-    return -2 ;
+    return -1 ;
 
-  if (pm_bus_mst(bus) != pm_bus_id(bus, cpu)) {
+  if (pm_bus_mst(bus) != pm_cpu_id(cpu)) {
     pm_bus_int(bus, PM_CPU_INT_GP) ;
-    return -3 ;
+    return -2 ;
   }
 
   pm_cpu_int(bus->cpu + id, num) ;

@@ -26,10 +26,9 @@ __PM_PUBL void     pm_bus_sth  (struct pm_bus_t * bus, u_word_t adr, u_half_t da
 __PM_PUBL void     pm_bus_stw  (struct pm_bus_t * bus, u_word_t adr, u_word_t dat) ;
 __PM_PUBL void     pm_bus_int  (struct pm_bus_t * bus, u_word_t num) ;
 __PM_PUBL u_word_t pm_bus_cks  (struct pm_bus_t * bus) ;
-__PM_PUBL void     pm_bus_hlt  (struct pm_bus_t * bus, int id) ;
-__PM_PUBL void     pm_bus_rdy  (struct pm_bus_t * bus, int id) ;
-__PM_PUBL void     pm_bus_bsy  (struct pm_bus_t * bus, int id) ;
-__PM_PUBL int      pm_bus_id   (struct pm_bus_t * bus, struct pm_cpu_t * cpu) ;
+__PM_PUBL void     pm_bus_hlt  (struct pm_bus_t * bus, u_word_t id) ;
+__PM_PUBL void     pm_bus_rdy  (struct pm_bus_t * bus, u_word_t id) ;
+__PM_PUBL void     pm_bus_bsy  (struct pm_bus_t * bus, u_word_t id) ;
 __PM_PUBL int      pm_bus_rint (struct pm_bus_t * bus, struct pm_cpu_t * cpu, int id, u_word_t num) ;
 
 #endif

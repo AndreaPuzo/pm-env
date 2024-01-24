@@ -35,15 +35,17 @@
 
 /* Shifts                                                                     */
 
-# define PM_CPU_SRS_PL 0    /* Privilege Level                                */
-# define PM_CPU_SRS_RN 2    /* RuNning                                        */
-# define PM_CPU_SRS_RS 3    /* ReSet Interrupt                                */
-# define PM_CPU_SRS_EI 4    /* Enable Interrupts                              */
-# define PM_CPU_SRS_SI 5    /* Serving Interrupt                              */
-# define PM_CPU_SRS_WI 6    /* Wait for Interrupt                             */
-# define PM_CPU_SRS_SS 7    /* Single Step execution                          */
-# define PM_CPU_SRS_SK 8    /* StacK direction                                */
-# define PM_CPU_SRS_PM 9    /* Paged Memory                                   */
+# define PM_CPU_SRS_PL  0   /* Privilege Level                                */
+# define PM_CPU_SRS_RN  2   /* RuNning                                        */
+# define PM_CPU_SRS_RS  3   /* ReSet Interrupt                                */
+# define PM_CPU_SRS_EI  4   /* Enable Interrupts                              */
+# define PM_CPU_SRS_SI  5   /* Serving Interrupt                              */
+# define PM_CPU_SRS_WI  6   /* Wait for Interrupt                             */
+# define PM_CPU_SRS_SS  7   /* Single Step execution                          */
+# define PM_CPU_SRS_SK  8   /* StacK direction                                */
+# define PM_CPU_SRS_PM  9   /* Paged Memory                                   */
+# define PM_CPU_SRS_MS 27   /* core MaSter                                    */
+# define PM_CPU_SRS_ID 28   /* core IDentifier                                */
 
 /* Masks                                                                      */
 
@@ -56,6 +58,8 @@
 # define PM_CPU_SRM_SS 0x1
 # define PM_CPU_SRM_SK 0x1
 # define PM_CPU_SRM_PM 0x1
+# define PM_CPU_SRM_MS 0x1
+# define PM_CPU_SRM_ID 0xF
 
 /* Flags                                                                      */
 
@@ -68,6 +72,8 @@
 # define PM_CPU_SRF_SS ( PM_CPU_SRM_SS << PM_CPU_SRS_SS )
 # define PM_CPU_SRF_SK ( PM_CPU_SRM_SK << PM_CPU_SRS_SK )
 # define PM_CPU_SRF_PM ( PM_CPU_SRM_PM << PM_CPU_SRS_PM )
+# define PM_CPU_SRF_MS ( PM_CPU_SRM_MS << PM_CPU_SRS_MS )
+# define PM_CPU_SRF_ID ( PM_CPU_SRM_ID << PM_CPU_SRS_ID )
 
 /* -------------------------------------------------------------------------- *
  * Privilege Levels                                                           *
@@ -137,7 +143,6 @@
 struct pm_cpu_t {
   struct pm_bus_t * bus          ;
   struct pm_cfg_t   cfg          ;
-  u_word_t          irq          ;
   u_word_t          ins          ;
   u_word_t          pc  [ 0x2  ] ;
   u_word_t          ck  [ 0x2  ] ;
@@ -157,5 +162,6 @@ __PM_PUBL void     pm_cpu_stb  (struct pm_cpu_t * cpu, u_word_t adr, u_byte_t da
 __PM_PUBL void     pm_cpu_sth  (struct pm_cpu_t * cpu, u_word_t adr, u_half_t dat) ;
 __PM_PUBL void     pm_cpu_stw  (struct pm_cpu_t * cpu, u_word_t adr, u_word_t dat) ;
 __PM_PUBL void     pm_cpu_int  (struct pm_cpu_t * cpu, u_word_t num) ;
+__PM_PUBL u_word_t pm_cpu_id   (struct pm_cpu_t * cpu) ;
 
 #endif
